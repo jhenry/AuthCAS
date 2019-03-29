@@ -56,7 +56,7 @@ class AuthCAS extends PluginAbstract
 			}
 		}	
 		else {
-			AuthCAS::do_exception("CAS authentication is enabled but REMOTE_USER not specified.");
+			ErrorHandler::do_exception("CAS authentication is enabled but REMOTE_USER not specified.");
 		}
 		
 
@@ -72,12 +72,24 @@ class AuthCAS extends PluginAbstract
 		$new_user= new User();
 		$new_user->username = $cas_user;
 		$new_user->password = 'dummy_password';
-		$new_user->email = 'first.last@uvm.edu';
+		
+		// Get directory entry for this user
+		$ldap = LDAP::get_entry($cas_user);
+		
+		// Email is a required field, so if we can't get one, build one.
+		$new_user->email = $ldap['mail'] ?? $cas_user . '@uvm.edu';
 
+		$new_user->firstName = $ldap['givenName'] ?? NULL;
+		$new_user->lastName = $ldap['sn'] ?? NULL;
+		$new_user->website = $ldap['labeledURI'] ?? NULL;
 		$new_user->released = true;
 		$new_user->duration = true;
 
-		$userService = new UserService();
+		$new_user->homedirectory = $ldap['homeDirectory'];
+		
+		include 'UserReMapper.php';
+		include 'NewUserService.php';
+		$userService = new NewUserService();
 		$our_user = $userService->create($new_user);
 
 		$userService->approve($our_user,'approve');
