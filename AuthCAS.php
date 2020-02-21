@@ -25,7 +25,7 @@ class AuthCAS extends PluginAbstract
 	/**
 	* @var string Current version of plugin
 	*/
-	public $version = '0.0.2';
+	public $version = '0.3.0';
 
 	/**
 	* Attaches plugin methods to hooks in code base
@@ -68,33 +68,61 @@ class AuthCAS extends PluginAbstract
 	*
 	*/
 	public function new_cas_user($cas_user) {
-		$new_user= new User();
+		$new_user = new User();
 		$new_user->username = $cas_user;
-		$new_user->password = 'dummy_password';
-		
-		// Get directory entry for this user
-		$ldap = LDAP::get_entry($cas_user);
-		
-		// Email is a required field, so if we can't get one, build one.
-		$new_user->email = $ldap['mail'] ?? $cas_user . '@uvm.edu';
-
-		$new_user->firstName = $ldap['givenName'] ?? NULL;
-		$new_user->lastName = $ldap['sn'] ?? NULL;
-		$new_user->website = $ldap['labeledURI'] ?? NULL;
+		$new_user->email = AuthCAS::make_default_email($cas_user);
+		$new_user->password = AuthCAS::random_str(16);
 		$new_user->released = true;
-		$new_user->duration = true;
 
-		$new_user->homedirectory = $ldap['homeDirectory'];
-		
-		include 'UserReMapper.php';
-		include 'NewUserService.php';
-		$userService = new NewUserService();
+		$userService = new UserService();
 		$our_user = $userService->create($new_user);
+
+		if( class_exists('ExtendedUser') ) {
+			ExtendedUser::save($our_user);
+		}
 
 		$userService->approve($our_user,'approve');
 		
 		$auth_service = new AuthService();
 		$auth_service->login( $our_user );
-
 	}
+
+	/**
+	* Create an email address based on part of the host name.
+	* TODO:  Ability to configure in settings.
+	*
+	* @var string $user User name 
+	*
+	*/
+	private function make_default_email($user) {
+
+		// Grab the last two parts of the URL 
+		$split_host = explode('.', parse_url(BASE_URL, PHP_URL_HOST), 2);
+		$default_email_domain = $split_host[1];
+
+		return $user . "@" . $default_email_domain;
+	}
+
+/**
+ * Generate a random string, using a cryptographically secure 
+ * pseudorandom number generator (random_int)
+ * 
+ * @param int $length      How many characters do we want?
+ * @param string $keyspace A string of all possible characters
+ *                         to select from
+ * @return string
+ */
+private function random_str( int $length = 64, string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'): string 
+{
+	if ($length < 1) {
+			throw new \RangeException("Length must be a positive integer");
+	}
+	$pieces = [];
+	$max = mb_strlen($keyspace, '8bit') - 1;
+	for ($i = 0; $i < $length; ++$i) {
+			$pieces []= $keyspace[random_int(0, $max)];
+	}
+	return implode('', $pieces);
+}
+
 }
