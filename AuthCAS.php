@@ -25,7 +25,7 @@ class AuthCAS extends PluginAbstract
 	/**
 	* @var string Current version of plugin
 	*/
-	public $version = '0.0.1';
+	public $version = '0.0.2';
 
 	/**
 	* Attaches plugin methods to hooks in code base
@@ -56,9 +56,8 @@ class AuthCAS extends PluginAbstract
 			}
 		}	
 		else {
-			ErrorHandler::do_exception("CAS authentication is enabled but REMOTE_USER not specified.");
+			throw new Exception('CAS authentication is enabled but REMOTE_USER not specified.');
 		}
-		
 
 	}
 	
@@ -98,33 +97,4 @@ class AuthCAS extends PluginAbstract
 		$auth_service->login( $our_user );
 
 	}
-	
-
-	/**
-	* Pretty print vars for more convenient debugging.
-	*
-	* @var object/array to print
-	*
-	*/
-	private function tracer($var) {
-		echo " ============================= ";
-		echo "<pre>";
-		var_dump($var); 
-		echo "</pre>";
-	}
-	
-	
-	/**
-	* Handle and display an error in the proper context.
-	*
-	* @var string Error message to display.
-	*
-	*/
-	private function do_exception($errorMessage)
-	{
-		//TODO: Hook into filter for system error view 
-		echo "Error:" . $errorMessage;
-		exit;
-	}
 }
-
