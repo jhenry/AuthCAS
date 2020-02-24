@@ -65,16 +65,17 @@ class AuthCAS extends PluginAbstract
 	 */
 	public function verify_cas_login()
 	{
-
-		//confirm we have the server vars we need		
+		// Get the username of the authenticated user, if available
 		$cas_user = $_SERVER['REMOTE_USER'] ?? $_SERVER['REDIRECT_REMOTE_USER'] ?? false;
 
 		if ($cas_user) {
-			$auth_service = new AuthService();
-			$user = $auth_service->validateCredentials($cas_user, 'dummy_password');
-			if (!$user && Settings::get(authcas_create_user)) {
+			$userMapper = new \UserMapper();
+			$user = $userMapper->getUserByUsername($cas_user);
+			if (!$user) {
+				// Valid CAS user, but no local account, so create one
 				AuthCAS::new_cas_user($cas_user);
 			} else {
+				$auth_service = new AuthService();
 				$auth_service->login($user);
 			}
 		} else {
