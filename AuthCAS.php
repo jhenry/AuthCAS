@@ -115,10 +115,9 @@ class AuthCAS extends PluginAbstract
 	 */
 	private function default_email_domain()
 	{
-
 		// Grab the last two parts of the URL 
-		$split_host = explode('.', parse_url(BASE_URL, PHP_URL_HOST), 2);
-		return $split_host[1];
+		$split_host = explode('.', parse_url(BASE_URL, PHP_URL_HOST));
+		return implode(".", array_slice($split_host, -2));
 	}
 
 	/**
