@@ -78,6 +78,8 @@ class AuthCAS extends PluginAbstract
 				$auth_service = new AuthService();
 				$auth_service->login($user);
 			}
+            // Redirect to video embed page if this is an embedded unlock.
+            AuthCAS::redirectUnlockedEmbed();
 		} else {
 			throw new Exception('CAS authentication is enabled but REMOTE_USER not specified.');
 		}
@@ -118,6 +120,19 @@ class AuthCAS extends PluginAbstract
 		// Grab the last two parts of the URL 
 		$split_host = explode('.', parse_url(BASE_URL, PHP_URL_HOST));
 		return implode(".", array_slice($split_host, -2));
+	}
+
+	/**
+	 * Redirect post-login when a user is unlocking a gated video.
+	 */
+	private function redirectUnlockedEmbed()
+	{
+      if(isset($_GET['r'])) 
+      {
+        $redirect = BASE_URL . '/' . $_GET['r'];
+        header("Location: $redirect");
+        exit();
+      }
 	}
 
 	/**
