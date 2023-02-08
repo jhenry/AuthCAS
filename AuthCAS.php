@@ -63,7 +63,7 @@ class AuthCAS extends PluginAbstract
 	 * them if this is their first login.
 	 *
 	 */
-	public function verify_cas_login()
+	public static function verify_cas_login()
 	{
 		// Get the username of the authenticated user, if available
 		$cas_user = $_SERVER['REMOTE_USER'] ?? $_SERVER['REDIRECT_REMOTE_USER'] ?? false;
@@ -91,7 +91,7 @@ class AuthCAS extends PluginAbstract
 	 * @var string user name from cas remote user vars.
 	 *
 	 */
-	public function new_cas_user($cas_user)
+	public static function new_cas_user($cas_user)
 	{
 		$new_user = new User();
 		$new_user->username = $cas_user;
@@ -115,7 +115,7 @@ class AuthCAS extends PluginAbstract
 	/**
 	 * Create a default email domain based on part of the host name.
 	 */
-	private function default_email_domain()
+	private static function default_email_domain()
 	{
 		// Grab the last two parts of the URL 
 		$split_host = explode('.', parse_url(BASE_URL, PHP_URL_HOST));
@@ -125,7 +125,7 @@ class AuthCAS extends PluginAbstract
 	/**
 	 * Redirect post-login when a user is unlocking a gated video.
 	 */
-	private function redirectUnlockedEmbed()
+	private static function redirectUnlockedEmbed()
 	{
       if(isset($_GET['r'])) 
       {
@@ -144,7 +144,7 @@ class AuthCAS extends PluginAbstract
 	 *                         to select from
 	 * @return string
 	 */
-	private function random_str(int $length = 64, string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'): string
+	private static function random_str(int $length = 64, string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'): string
 	{
 		if ($length < 1) {
 			throw new \RangeException("Length must be a positive integer");
